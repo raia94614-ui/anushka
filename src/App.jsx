@@ -29,37 +29,17 @@ import { creatorData as initialCreatorData } from './data/creatorData';
 import { Settings, Lock, Sparkles, QrCode } from 'lucide-react';
 
 const STORAGE_KEY = 'anushka_creator_data_v5';
-const THEME_KEY = 'anushka_theme_mode';
 
 export function App() {
-  // Theme state ('dark' | 'light')
-  const [theme, setTheme] = useState(() => {
-    try {
-      const savedTheme = localStorage.getItem(THEME_KEY);
-      if (savedTheme === 'light' || savedTheme === 'dark') return savedTheme;
-    } catch (e) {}
-    return 'dark';
-  });
-
-  // Apply theme class to <html>
+  // Ensure root <html> always has dark class and remove any legacy light mode storage
   useEffect(() => {
     const root = document.documentElement;
-    if (theme === 'light') {
-      root.classList.remove('dark');
-      root.classList.add('light');
-    } else {
-      root.classList.remove('light');
-      root.classList.add('dark');
-    }
+    root.classList.remove('light');
+    root.classList.add('dark');
     try {
-      localStorage.setItem(THEME_KEY, theme);
+      localStorage.removeItem('anushka_theme_mode');
     } catch (e) {}
-  }, [theme]);
-
-  const toggleTheme = () => {
-    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
-    showToast(`Switched to ${theme === 'dark' ? 'Light' : 'Dark'} mode`);
-  };
+  }, []);
 
   // Brief initial loading screen
   const [isLoading, setIsLoading] = useState(true);
@@ -206,7 +186,7 @@ export function App() {
   };
 
   return (
-    <div className={`min-h-screen font-sans relative ${theme === 'light' ? 'bg-[#FAF9F6] text-slate-900' : 'bg-[#090A0F] text-slate-100'}`}>
+    <div className="min-h-screen font-sans relative bg-[#090A0F] text-slate-100 selection:bg-rose-500 selection:text-white">
       
       {/* 0. Real-time Luxury Scroll Progress Bar */}
       <ScrollProgressBar />
@@ -222,8 +202,6 @@ export function App() {
         onOpenMediaKit={() => setMediaKitOpen(true)}
         onOpenAdmin={handleOpenAdmin}
         activeSection={activeSection}
-        theme={theme}
-        onToggleTheme={toggleTheme}
       />
 
       {/* Main Content Sections */}

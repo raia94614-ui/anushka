@@ -7,9 +7,7 @@ import {
   Send, 
   FileText,
   ExternalLink,
-  Settings,
-  Sun,
-  Moon
+  Settings
 } from 'lucide-react';
 import { InstagramIcon } from './BrandIcons';
 import { creatorData as defaultCreatorData } from '../data/creatorData';
@@ -18,9 +16,7 @@ export const Navbar = ({
   data = defaultCreatorData, 
   onOpenMediaKit, 
   onOpenAdmin, 
-  activeSection,
-  theme = 'dark',
-  onToggleTheme 
+  activeSection 
 }) => {
   const currentData = data || defaultCreatorData;
   const brand = currentData.brand;
@@ -126,23 +122,8 @@ export const Navbar = ({
             })}
           </nav>
 
-          {/* Desktop Action Buttons & Theme Switcher */}
+          {/* Desktop Action Buttons */}
           <div className="hidden sm:flex items-center gap-2">
-            
-            {/* Theme Toggle */}
-            <button
-              onClick={onToggleTheme}
-              className="p-2 rounded-full text-slate-300 hover:text-white bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 transition-colors cursor-pointer"
-              title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-              aria-label="Toggle Theme"
-            >
-              {theme === 'dark' ? (
-                <Sun className="w-3.5 h-3.5 text-amber-400" />
-              ) : (
-                <Moon className="w-3.5 h-3.5 text-purple-400" />
-              )}
-            </button>
-
             {/* Admin Panel Trigger Pill */}
             <button
               onClick={onOpenAdmin}
@@ -178,14 +159,6 @@ export const Navbar = ({
 
           {/* Mobile Hamburger Button */}
           <div className="flex items-center gap-2 xl:hidden">
-            <button
-              onClick={onToggleTheme}
-              className="p-2 rounded-lg bg-white/[0.05] border border-white/10 text-slate-300"
-              aria-label="Toggle Theme"
-            >
-              {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-purple-400" />}
-            </button>
-
             <button
               onClick={onOpenAdmin}
               className="p-2 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400"

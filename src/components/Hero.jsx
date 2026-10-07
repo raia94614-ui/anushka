@@ -75,15 +75,15 @@ export const Hero = ({ data = defaultCreatorData, onOpenMediaKit, onSelectStoryH
             </div>
 
             {/* Main Headline */}
-            <h1 className="font-display font-black text-4xl sm:text-5xl md:text-6xl xl:text-7xl tracking-tight text-white leading-[1.08] mb-6">
-              {brand.tagline} <br />
+            <h1 className="font-display font-black text-4xl sm:text-5xl md:text-6xl xl:text-7xl tracking-tight text-white leading-[1.08] mb-6 drop-shadow-sm">
+              <span className="text-white">{brand.tagline}</span> <br />
               <span className="text-instagram-gradient">
                 {brand.subTagline || "documenting life in my element"}
               </span>
             </h1>
 
             {/* Bio / Description */}
-            <p className="text-base sm:text-lg text-slate-300 max-w-2xl leading-relaxed mb-8 font-light">
+            <p className="text-base sm:text-lg text-slate-200 max-w-2xl leading-relaxed mb-8 font-normal">
               {brand.bio}
             </p>
 
@@ -95,7 +95,7 @@ export const Hero = ({ data = defaultCreatorData, onOpenMediaKit, onSelectStoryH
                 href={brand.instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full sm:w-auto px-7 py-3.5 rounded-2xl font-semibold text-white bg-gradient-to-r from-amber-500 via-rose-500 to-purple-600 hover:opacity-95 shadow-lg shadow-rose-500/25 hover:shadow-rose-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2.5 group text-sm sm:text-base"
+                className="w-full sm:w-auto px-7 py-3.5 rounded-2xl font-bold text-white bg-gradient-to-r from-amber-500 via-rose-500 to-purple-600 hover:opacity-95 shadow-xl shadow-rose-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2.5 group text-sm sm:text-base"
               >
                 <InstagramIcon className="w-5 h-5 group-hover:rotate-12 transition-transform" />
                 <span>Follow {brand.handle}</span>
@@ -105,16 +105,16 @@ export const Hero = ({ data = defaultCreatorData, onOpenMediaKit, onSelectStoryH
               {/* View My Work CTA */}
               <button
                 onClick={() => scrollToSection('#content')}
-                className="w-full sm:w-auto px-6 py-3.5 rounded-2xl font-medium text-slate-200 bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 hover:border-white/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer"
+                className="w-full sm:w-auto px-6 py-3.5 rounded-2xl font-semibold text-white bg-white/[0.08] hover:bg-white/[0.15] border border-white/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer shadow-md"
               >
-                <Play className="w-4 h-4 text-rose-400 fill-rose-400/20" />
+                <Play className="w-4 h-4 text-rose-400 fill-rose-400" />
                 <span>View My Work</span>
               </button>
 
               {/* Work With Me CTA */}
               <button
                 onClick={() => scrollToSection('#contact')}
-                className="w-full sm:w-auto px-5 py-3.5 rounded-2xl font-medium text-slate-300 hover:text-white bg-transparent hover:bg-white/[0.04] border border-slate-700/50 hover:border-slate-500 transition-all flex items-center justify-center gap-2 text-sm cursor-pointer"
+                className="w-full sm:w-auto px-5 py-3.5 rounded-2xl font-semibold text-purple-200 hover:text-white bg-purple-500/15 hover:bg-purple-500/25 border border-purple-500/40 hover:border-purple-500/60 transition-all flex items-center justify-center gap-2 text-sm cursor-pointer shadow-md"
               >
                 <Sparkles className="w-4 h-4 text-purple-400" />
                 <span>Work With Me</span>
