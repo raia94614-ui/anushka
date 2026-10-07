@@ -1221,13 +1221,13 @@ export const AdminPanel = ({ data, onSave, onReset, onLogout, onClose, onShowToa
                 </div>
               )}
 
-              {/* Image / Thumbnail URL */}
+              {/* Image / Thumbnail URL with Live Preview */}
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-xs font-mono text-slate-300 uppercase">
                     {editingItem.type === 'reel' ? 'Reel Thumbnail URL *' : 'Image URL *'}
                   </label>
-                  <span className="text-[10px] text-slate-500">Preset below</span>
+                  <span className="text-[10px] text-slate-500">Live preview below</span>
                 </div>
                 <input 
                   type="text"
@@ -1240,12 +1240,41 @@ export const AdminPanel = ({ data, onSave, onReset, onLogout, onClose, onShowToa
                       [editingItem.type === 'reel' ? 'thumbnail' : 'image']: e.target.value 
                     }
                   })}
-                  placeholder="https://images.unsplash.com/..."
+                  placeholder="https://images.unsplash.com/... or /anushka_avatar.jpg"
                   className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-white focus:outline-none focus:border-rose-500"
                 />
 
+                {/* Live Image Preview */}
+                <div className="mt-2.5 flex items-center gap-3 p-2 rounded-xl bg-black/40 border border-white/10">
+                  <div className="w-12 h-12 rounded-lg overflow-hidden bg-slate-900 border border-white/20 shrink-0">
+                    <img
+                      src={(editingItem.type === 'reel' ? editingItem.item.thumbnail : editingItem.item.image) || '/anushka_avatar.jpg'}
+                      alt="Preview"
+                      onError={(e) => { e.target.src = '/anushka_avatar.jpg'; }}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="text-[11px] text-slate-400 font-mono leading-tight">
+                    <span className="text-white block font-semibold">Cover Photo Preview</span>
+                    <span>Photo will display identically on the main feed and inside modal.</span>
+                  </div>
+                </div>
+
                 {/* Quick Preset selector */}
                 <div className="flex flex-wrap gap-1.5 mt-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditingItem({
+                      ...editingItem,
+                      item: { 
+                        ...editingItem.item, 
+                        [editingItem.type === 'reel' ? 'thumbnail' : 'image']: '/anushka_avatar.jpg' 
+                      }
+                    })}
+                    className="px-2 py-0.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/40 text-[10px] text-rose-300 border border-rose-500/40 cursor-pointer font-bold"
+                  >
+                    ★ Anushka Portrait
+                  </button>
                   {aestheticPresets.map((preset, idx) => (
                     <button
                       key={idx}

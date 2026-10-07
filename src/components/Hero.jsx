@@ -268,10 +268,11 @@ export const Hero = ({ data = defaultCreatorData, onOpenMediaKit, onSelectStoryH
                   className="group flex flex-col items-center gap-2 shrink-0 focus:outline-none cursor-pointer"
                 >
                   <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full p-[2.5px] bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 transition-transform duration-300 group-hover:scale-105 shadow-md shadow-rose-500/10">
-                    <div className="w-full h-full rounded-full p-[2px] bg-[#090A0F]">
+                    <div className="w-full h-full rounded-full p-[2px] bg-[#090A0F] overflow-hidden">
                       <img 
-                        src={highlight.image} 
+                        src={highlight.image || brand.avatar || '/anushka_avatar.jpg'} 
                         alt={highlight.title}
+                        onError={(e) => { e.target.src = brand.avatar || '/anushka_avatar.jpg'; }}
                         className="w-full h-full rounded-full object-cover group-hover:opacity-90 transition-opacity" 
                       />
                     </div>
