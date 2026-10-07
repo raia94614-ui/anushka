@@ -34,6 +34,7 @@ export const StoryViewerModal = ({ data = defaultCreatorData, activeHighlight, o
   const [replyText, setReplyText] = useState('');
   const [floatingHearts, setFloatingHearts] = useState([]);
 
+  const videoRef = useRef(null);
   const activeHighlightItem = highlights[currentHighlightIndex] || highlights[0] || {
     id: 'fits',
     title: 'Highlights',
@@ -60,6 +61,21 @@ export const StoryViewerModal = ({ data = defaultCreatorData, activeHighlight, o
 
   const currentSlide = slides[slideIndex] || slides[0];
 
+  // Helper to detect if slide is a video
+  const isVideoSlide = (slide) => {
+    if (!slide) return false;
+    if (slide.mediaType === 'video' || slide.video || slide.videoUrl) return true;
+    const src = slide.video || slide.videoUrl || slide.image || '';
+    if (typeof src === 'string') {
+      if (src.startsWith('data:video/') || src.startsWith('blob:')) return true;
+      if (/\.(mp4|webm|mov|m4v|ogg)(\?.*)?$/i.test(src)) return true;
+    }
+    return false;
+  };
+
+  const isCurrentVideo = isVideoSlide(currentSlide);
+  const currentVideoSrc = currentSlide.video || currentSlide.videoUrl || (isCurrentVideo ? currentSlide.image : null);
+
   // Reset slide and progress when highlight changes
   useEffect(() => {
     setSlideIndex(0);
@@ -71,11 +87,35 @@ export const StoryViewerModal = ({ data = defaultCreatorData, activeHighlight, o
   useEffect(() => {
     setProgress(0);
     setLiked(false);
+    if (videoRef.current) {
+      videoRef.current.currentTime = 0;
+      if (!isPaused) {
+        videoRef.current.play().catch(() => {});
+      }
+    }
   }, [slideIndex]);
 
-  // Auto-advancing story timer
+  // Sync video pause state
   useEffect(() => {
-    if (isPaused) return;
+    if (videoRef.current) {
+      if (isPaused) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play().catch(() => {});
+      }
+    }
+  }, [isPaused]);
+
+  // Sync video mute state
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.muted = isMuted;
+    }
+  }, [isMuted]);
+
+  // Auto-advancing story timer (runs for image slides; video slides drive progress via onTimeUpdate)
+  useEffect(() => {
+    if (isPaused || isCurrentVideo) return;
 
     const interval = setInterval(() => {
       setProgress(prev => {
@@ -97,7 +137,7 @@ export const StoryViewerModal = ({ data = defaultCreatorData, activeHighlight, o
     }, 90);
 
     return () => clearInterval(interval);
-  }, [currentHighlightIndex, slideIndex, slides.length, highlights.length, isPaused, onClose]);
+  }, [currentHighlightIndex, slideIndex, slides.length, highlights.length, isPaused, isCurrentVideo, onClose]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -206,13 +246,31 @@ export const StoryViewerModal = ({ data = defaultCreatorData, activeHighlight, o
         onClick={(e) => e.stopPropagation()}
         className="relative w-full max-w-[390px] sm:max-w-[420px] aspect-[9/16] rounded-3xl overflow-hidden bg-[#0a0c14] border border-white/20 shadow-2xl flex flex-col justify-between z-10"
       >
-        {/* Story Background Image (with Fallback) */}
-        <img
-          src={currentSlide.image || activeHighlightItem.image || brand.avatar || '/anushka_avatar.jpg'}
-          alt={activeHighlightItem.title}
-          onError={handleImageError}
-          className="absolute inset-0 w-full h-full object-cover"
-        />
+        {/* Story Background Media (Video or Image) */}
+        {isCurrentVideo && currentVideoSrc ? (
+          <video
+            ref={videoRef}
+            src={currentVideoSrc}
+            playsInline
+            autoPlay
+            muted={isMuted}
+            onTimeUpdate={(e) => {
+              const el = e.currentTarget;
+              if (el.duration && !isNaN(el.duration)) {
+                setProgress((el.currentTime / el.duration) * 100);
+              }
+            }}
+            onEnded={handleNext}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        ) : (
+          <img
+            src={currentSlide.image || activeHighlightItem.image || brand.avatar || '/anushka_avatar.jpg'}
+            alt={activeHighlightItem.title}
+            onError={handleImageError}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        )}
 
         {/* Instagram Scrim Gradients */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-transparent to-black/90 pointer-events-none" />

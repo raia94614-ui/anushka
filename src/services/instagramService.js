@@ -100,6 +100,35 @@ export async function fetchInstagramMedia(accessToken, userId = 'me') {
 }
 
 /**
+ * Extract Instagram Reel or Post Shortcode from any Instagram URL
+ * Supports formats:
+ * - https://www.instagram.com/reel/C-xyz123/
+ * - https://www.instagram.com/p/C-xyz123/
+ * - https://www.instagram.com/tv/C-xyz123/
+ * - https://instagram.com/reels/C-xyz123/
+ * @param {string} url - Instagram URL
+ * @returns {string|null} - Extracted shortcode or null
+ */
+export function extractInstagramShortcode(url) {
+  if (!url || typeof url !== 'string') return null;
+  const cleaned = url.trim();
+  const match = cleaned.match(/(?:reel|reels|p|tv)\/([a-zA-Z0-9_-]+)/i);
+  return match ? match[1] : null;
+}
+
+/**
+ * Generate official Instagram Embed iframe URL from Instagram link
+ * @param {string} url - Instagram URL or Shortcode
+ * @returns {string|null} - Embed URL for iframe
+ */
+export function getInstagramEmbedUrl(url) {
+  if (!url || typeof url !== 'string') return null;
+  const shortcode = extractInstagramShortcode(url) || (url.length <= 15 && !url.includes('/') ? url : null);
+  if (!shortcode) return null;
+  return `https://www.instagram.com/reel/${shortcode}/embed/captioned/`;
+}
+
+/**
  * Highlights Policy Notice:
  * Meta's official Instagram Basic Display and Graph API endpoints explicitly
  * DO NOT provide a public API for Permanent Profile Highlights.
@@ -111,3 +140,4 @@ export const HIGHLIGHTS_API_POLICY = {
   profileUrl: 'https://www.instagram.com/anushkaunveiled/',
   deepLink: 'instagram://user?username=anushkaunveiled'
 };
+

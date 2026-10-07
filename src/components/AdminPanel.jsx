@@ -32,10 +32,12 @@ import {
   Info,
   ShieldAlert,
   ArrowUpRight,
-  Radio
+  Radio,
+  Video,
+  Play
 } from 'lucide-react';
 import { InstagramIcon } from './BrandIcons';
-import { fetchInstagramMedia, HIGHLIGHTS_API_POLICY } from '../services/instagramService';
+import { fetchInstagramMedia, HIGHLIGHTS_API_POLICY, extractInstagramShortcode, getInstagramEmbedUrl } from '../services/instagramService';
 
 export const AdminPanel = ({ data, onSave, onReset, onLogout, onClose, onShowToast }) => {
   const [activeTab, setActiveTab] = useState('profile');
@@ -49,6 +51,16 @@ export const AdminPanel = ({ data, onSave, onReset, onLogout, onClose, onShowToa
   // Modal states for adding/editing items
   const [editingItem, setEditingItem] = useState(null); // { type: 'post'|'reel'|'gallery'|'highlight', item: {}, isNew: boolean }
   const [copiedCode, setCopiedCode] = useState(false);
+
+  // Helper to read local files (videos & photos) as base64 data URLs
+  const handleFileRead = (file, callback) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (callback) callback(event.target.result);
+    };
+    reader.readAsDataURL(file);
+  };
 
   // Update top-level brand properties
   const handleBrandChange = (field, value) => {
@@ -233,16 +245,30 @@ export const AdminPanel = ({ data, onSave, onReset, onLogout, onClose, onShowToa
     const { type, item, isNew } = editingItem;
 
     if (type === 'highlight') {
+      const slides = (item.slides && item.slides.length > 0) ? item.slides : [
+        {
+          id: `${item.id || Date.now()}-1`,
+          image: item.image || '/anushka_avatar.jpg',
+          video: item.video || '',
+          caption: item.title || 'In my element ✨',
+          time: '4h'
+        }
+      ];
+      const formattedHighlight = {
+        ...item,
+        slides
+      };
+
       if (isNew) {
         const newItem = {
-          ...item,
+          ...formattedHighlight,
           id: `highlight-${Date.now()}`
         };
         setFormData(prev => ({ ...prev, storyHighlights: [...prev.storyHighlights, newItem] }));
       } else {
         setFormData(prev => ({
           ...prev,
-          storyHighlights: prev.storyHighlights.map(h => h.id === item.id ? item : h)
+          storyHighlights: prev.storyHighlights.map(h => h.id === item.id ? formattedHighlight : h)
         }));
       }
     } else if (type === 'post') {
@@ -263,8 +289,15 @@ export const AdminPanel = ({ data, onSave, onReset, onLogout, onClose, onShowToa
         }));
       }
     } else if (type === 'reel') {
+      const igUrl = item.instagramUrl || '';
+      const shortcode = extractInstagramShortcode(igUrl) || item.shortcode;
+      const embedUrl = shortcode ? getInstagramEmbedUrl(igUrl || shortcode) : item.embedUrl;
+
       const formattedItem = {
         ...item,
+        thumbnail: item.thumbnail || item.video || '/anushka_avatar.jpg',
+        shortcode,
+        embedUrl,
         tags: typeof item.tags === 'string' ? item.tags.split(',').map(t => t.trim()) : item.tags
       };
       if (isNew) {
@@ -1493,7 +1526,7 @@ export const AdminPanel = ({ data, onSave, onReset, onLogout, onClose, onShowToa
               </button>
             </div>
 
-            <form onSubmit={handleSaveItemModal} className="space-y-4">
+            <form onSubmit={handleSaveItemModal} className="space-y-5">
               {/* Title */}
               <div>
                 <label className="block text-xs font-mono text-slate-300 uppercase mb-1">Title *</label>
@@ -1508,6 +1541,390 @@ export const AdminPanel = ({ data, onSave, onReset, onLogout, onClose, onShowToa
                   className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-white focus:outline-none focus:border-rose-500"
                 />
               </div>
+
+              {/* ======================================================== */}
+              {/* HIGHLIGHT SPECIFIC: COVER & SLIDES MANAGER (VIDEOS & PHOTOS) */}
+              {/* ======================================================== */}
+              {editingItem.type === 'highlight' && (
+                <div className="space-y-4 pt-1">
+                  {/* Highlight Cover Photo / Video */}
+                  <div className="p-4 rounded-2xl bg-black/40 border border-white/10 space-y-3">
+                    <label className="block text-xs font-mono text-slate-300 uppercase">
+                      Highlight Cover Photo / Video *
+                    </label>
+                    
+                    <div className="flex flex-col sm:flex-row gap-3 items-center">
+                      <div className="w-16 h-16 rounded-full p-[2px] story-ring-animated shrink-0 overflow-hidden bg-black">
+                        {editingItem.item.image && (editingItem.item.image.startsWith('data:video') || /\.(mp4|webm|mov)/i.test(editingItem.item.image)) ? (
+                          <video src={editingItem.item.image} className="w-full h-full rounded-full object-cover" />
+                        ) : (
+                          <img 
+                            src={editingItem.item.image || '/anushka_avatar.jpg'} 
+                            alt="Cover" 
+                            onError={(e) => { e.target.src = '/anushka_avatar.jpg'; }}
+                            className="w-full h-full rounded-full object-cover" 
+                          />
+                        )}
+                      </div>
+
+                      <div className="flex-grow w-full space-y-2">
+                        <div className="flex items-center gap-2">
+                          <input 
+                            type="text"
+                            required
+                            value={editingItem.item.image || ''}
+                            onChange={(e) => setEditingItem({
+                              ...editingItem,
+                              item: { ...editingItem.item, image: e.target.value }
+                            })}
+                            placeholder="Image / Video URL or upload below..."
+                            className="w-full px-3.5 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-white focus:outline-none focus:border-rose-500"
+                          />
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <label className="px-3 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-[11px] font-semibold flex items-center gap-1.5 cursor-pointer transition-colors">
+                            <Upload className="w-3.5 h-3.5" />
+                            <span>Upload Cover File</span>
+                            <input 
+                              type="file" 
+                              accept="video/*,image/*" 
+                              className="hidden" 
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  handleFileRead(file, (dataUrl) => {
+                                    setEditingItem({
+                                      ...editingItem,
+                                      item: { ...editingItem.item, image: dataUrl }
+                                    });
+                                  });
+                                }
+                              }}
+                            />
+                          </label>
+                          <span className="text-[10px] text-slate-500">Supports .mp4, .mov, .jpg, .png</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Multi-Slide Story Editor (Upload Videos & Photos for each slide) */}
+                  <div className="p-4 rounded-2xl bg-[#131524] border border-white/10 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
+                          <Sparkles className="w-3.5 h-3.5 text-rose-400" />
+                          <span>Story Slides in this Highlight ({(editingItem.item.slides || []).length})</span>
+                        </h4>
+                        <p className="text-[10px] text-slate-400">Add videos or photos that play when users click this highlight</p>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const currentSlides = editingItem.item.slides || [];
+                          const newSlide = {
+                            id: `slide-${Date.now()}`,
+                            image: aestheticPresets[currentSlides.length % aestheticPresets.length].url,
+                            video: '',
+                            caption: `${editingItem.item.title || 'In my element'} • Part ${currentSlides.length + 1} ✨`,
+                            time: '4h'
+                          };
+                          setEditingItem({
+                            ...editingItem,
+                            item: {
+                              ...editingItem.item,
+                              slides: [...currentSlides, newSlide]
+                            }
+                          });
+                        }}
+                        className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-rose-500 text-white text-[11px] font-bold flex items-center gap-1 cursor-pointer shadow-sm"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Add Slide</span>
+                      </button>
+                    </div>
+
+                    {/* Slides List */}
+                    <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
+                      {(editingItem.item.slides || [
+                        { id: 'slide-1', image: editingItem.item.image || '/anushka_avatar.jpg', caption: 'Documenting life in my element ✨', time: '4h' }
+                      ]).map((slide, sIdx) => {
+                        const isVid = slide.video || (slide.image && (slide.image.startsWith('data:video') || /\.(mp4|webm|mov)/i.test(slide.image)));
+                        const mediaSrc = slide.video || slide.image || '/anushka_avatar.jpg';
+
+                        return (
+                          <div key={slide.id || sIdx} className="p-3 rounded-xl bg-black/50 border border-white/[0.08] flex gap-3 items-start">
+                            <div className="w-14 h-20 rounded-lg overflow-hidden bg-slate-900 border border-white/20 shrink-0 relative">
+                              {isVid ? (
+                                <video src={mediaSrc} className="w-full h-full object-cover" />
+                              ) : (
+                                <img src={mediaSrc} alt="Slide" className="w-full h-full object-cover" onError={(e) => { e.target.src = '/anushka_avatar.jpg'; }} />
+                              )}
+                              <span className="absolute bottom-1 left-1 px-1 py-0.2 rounded bg-black/80 text-[8px] font-mono text-rose-300">
+                                #{sIdx + 1} {isVid ? '🎬' : '📸'}
+                              </span>
+                            </div>
+
+                            <div className="flex-grow space-y-1.5 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <input 
+                                  type="text"
+                                  value={slide.image || ''}
+                                  onChange={(e) => {
+                                    const updatedSlides = [...(editingItem.item.slides || [])];
+                                    updatedSlides[sIdx] = { ...slide, image: e.target.value };
+                                    setEditingItem({ ...editingItem, item: { ...editingItem.item, slides: updatedSlides } });
+                                  }}
+                                  placeholder="Slide Video / Photo URL..."
+                                  className="w-full px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/10 text-[11px] text-white focus:outline-none focus:border-rose-500"
+                                />
+
+                                <label className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white text-[10px] font-medium flex items-center gap-1 cursor-pointer shrink-0">
+                                  <Upload className="w-3 h-3" />
+                                  <span>Upload</span>
+                                  <input 
+                                    type="file" 
+                                    accept="video/*,image/*" 
+                                    className="hidden" 
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file) {
+                                        handleFileRead(file, (dataUrl) => {
+                                          const isVideoFile = file.type.startsWith('video');
+                                          const updatedSlides = [...(editingItem.item.slides || [])];
+                                          updatedSlides[sIdx] = { 
+                                            ...slide, 
+                                            image: dataUrl,
+                                            video: isVideoFile ? dataUrl : '',
+                                            mediaType: isVideoFile ? 'video' : 'image'
+                                          };
+                                          setEditingItem({ ...editingItem, item: { ...editingItem.item, slides: updatedSlides } });
+                                        });
+                                      }
+                                    }}
+                                  />
+                                </label>
+                              </div>
+
+                              <div className="grid grid-cols-3 gap-1.5">
+                                <input 
+                                  type="text"
+                                  value={slide.caption || ''}
+                                  onChange={(e) => {
+                                    const updatedSlides = [...(editingItem.item.slides || [])];
+                                    updatedSlides[sIdx] = { ...slide, caption: e.target.value };
+                                    setEditingItem({ ...editingItem, item: { ...editingItem.item, slides: updatedSlides } });
+                                  }}
+                                  placeholder="Slide caption..."
+                                  className="col-span-2 px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/10 text-[11px] text-white focus:outline-none focus:border-rose-500"
+                                />
+
+                                <div className="flex items-center gap-1">
+                                  <input 
+                                    type="text"
+                                    value={slide.time || '4h'}
+                                    onChange={(e) => {
+                                      const updatedSlides = [...(editingItem.item.slides || [])];
+                                      updatedSlides[sIdx] = { ...slide, time: e.target.value };
+                                      setEditingItem({ ...editingItem, item: { ...editingItem.item, slides: updatedSlides } });
+                                    }}
+                                    placeholder="4h"
+                                    className="w-full px-2 py-1 rounded-lg bg-white/[0.04] border border-white/10 text-[11px] text-white text-center focus:outline-none focus:border-rose-500 font-mono"
+                                  />
+
+                                  {(editingItem.item.slides || []).length > 1 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const updatedSlides = (editingItem.item.slides || []).filter((_, idx) => idx !== sIdx);
+                                        setEditingItem({ ...editingItem, item: { ...editingItem.item, slides: updatedSlides } });
+                                      }}
+                                      className="p-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/40 text-rose-400 cursor-pointer"
+                                      title="Delete slide"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ======================================================== */}
+              {/* REEL SPECIFIC: INSTAGRAM LINK, DIRECT VIDEO UPLOAD & THUMB */}
+              {/* ======================================================== */}
+              {editingItem.type === 'reel' && (
+                <div className="space-y-4 pt-1">
+                  {/* Instagram Reel URL with live embed detection */}
+                  <div className="p-4 rounded-2xl bg-gradient-to-br from-[#181a2e] to-[#111322] border border-rose-500/30 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-xs font-mono text-slate-300 uppercase flex items-center gap-1.5">
+                        <InstagramIcon className="w-3.5 h-3.5 text-rose-400" />
+                        <span>Instagram Reel Link (Paste URL to display live)</span>
+                      </label>
+                      <span className="text-[10px] font-mono text-rose-400">Live Embed Support</span>
+                    </div>
+
+                    <input 
+                      type="text"
+                      value={editingItem.item.instagramUrl || ''}
+                      onChange={(e) => {
+                        const url = e.target.value;
+                        const shortcode = extractInstagramShortcode(url);
+                        const embedUrl = shortcode ? getInstagramEmbedUrl(url) : '';
+                        setEditingItem({
+                          ...editingItem,
+                          item: {
+                            ...editingItem.item,
+                            instagramUrl: url,
+                            shortcode,
+                            embedUrl
+                          }
+                        });
+                      }}
+                      placeholder="https://www.instagram.com/reel/C_xyz123/ or https://instagram.com/p/..."
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.06] border border-white/15 text-xs text-white font-mono focus:outline-none focus:border-rose-500"
+                    />
+
+                    {/* Detection Badge */}
+                    {extractInstagramShortcode(editingItem.item.instagramUrl || '') ? (
+                      <div className="flex items-center gap-1.5 text-[11px] text-emerald-400 font-medium">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>Instagram Reel recognized ({extractInstagramShortcode(editingItem.item.instagramUrl)}) • Live Instagram Embed ready!</span>
+                      </div>
+                    ) : (
+                      <p className="text-[10px] text-slate-400">
+                        Paste any public Instagram reel or post link — the website will automatically load and play the real reel.
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Direct Video File Upload */}
+                  <div className="p-4 rounded-2xl bg-black/40 border border-white/10 space-y-2">
+                    <label className="block text-xs font-mono text-slate-300 uppercase flex items-center gap-1.5">
+                      <Video className="w-3.5 h-3.5 text-purple-400" />
+                      <span>Direct Video Upload (.mp4 / .mov / .webm)</span>
+                    </label>
+
+                    <div className="flex items-center gap-3">
+                      <label className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-rose-600 text-white text-xs font-bold flex items-center gap-2 cursor-pointer shadow-md hover:opacity-95 transition-opacity">
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>Upload Video File</span>
+                        <input 
+                          type="file" 
+                          accept="video/*" 
+                          className="hidden" 
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              handleFileRead(file, (dataUrl) => {
+                                setEditingItem({
+                                  ...editingItem,
+                                  item: {
+                                    ...editingItem.item,
+                                    video: dataUrl,
+                                    mediaType: 'video'
+                                  }
+                                });
+                              });
+                            }
+                          }}
+                        />
+                      </label>
+
+                      {editingItem.item.video && (
+                        <span className="text-[11px] text-emerald-400 flex items-center gap-1">
+                          <Check className="w-3.5 h-3.5" />
+                          <span>Video File Attached</span>
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Video Player Preview if direct video is attached */}
+                    {editingItem.item.video && (
+                      <div className="mt-2 w-32 h-48 rounded-xl overflow-hidden bg-black border border-white/20">
+                        <video src={editingItem.item.video} controls className="w-full h-full object-cover" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Cover / Thumbnail */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-mono text-slate-300 uppercase">Cover Thumbnail *</label>
+                      <label className="text-[10px] text-rose-300 hover:underline cursor-pointer flex items-center gap-1">
+                        <Upload className="w-3 h-3" />
+                        <span>Upload Photo</span>
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          className="hidden" 
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              handleFileRead(file, (dataUrl) => {
+                                setEditingItem({
+                                  ...editingItem,
+                                  item: { ...editingItem.item, thumbnail: dataUrl }
+                                });
+                              });
+                            }
+                          }}
+                        />
+                      </label>
+                    </div>
+                    <input 
+                      type="text"
+                      required
+                      value={editingItem.item.thumbnail || ''}
+                      onChange={(e) => setEditingItem({
+                        ...editingItem,
+                        item: { ...editingItem.item, thumbnail: e.target.value }
+                      })}
+                      placeholder="Thumbnail Image URL..."
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-white focus:outline-none focus:border-rose-500"
+                    />
+                  </div>
+
+                  {/* Audio & Duration */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-mono text-slate-300 uppercase mb-1">Audio / Sound</label>
+                      <input 
+                        type="text"
+                        value={editingItem.item.sound || ''}
+                        onChange={(e) => setEditingItem({
+                          ...editingItem,
+                          item: { ...editingItem.item, sound: e.target.value }
+                        })}
+                        placeholder="Original Audio"
+                        className="w-full px-3.5 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-white focus:outline-none focus:border-rose-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-mono text-slate-300 uppercase mb-1">Duration</label>
+                      <input 
+                        type="text"
+                        value={editingItem.item.duration || '0:30'}
+                        onChange={(e) => setEditingItem({
+                          ...editingItem,
+                          item: { ...editingItem.item, duration: e.target.value }
+                        })}
+                        placeholder="0:30"
+                        className="w-full px-3.5 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-white focus:outline-none focus:border-rose-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Category (for post, reel, gallery) */}
               {editingItem.type !== 'highlight' && (
@@ -1531,107 +1948,58 @@ export const AdminPanel = ({ data, onSave, onReset, onLogout, onClose, onShowToa
                 </div>
               )}
 
-              {/* Image / Thumbnail URL with Live Preview */}
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs font-mono text-slate-300 uppercase">
-                    {editingItem.type === 'reel' ? 'Reel Thumbnail URL *' : 'Image URL *'}
-                  </label>
-                  <span className="text-[10px] text-slate-500">Live preview below</span>
-                </div>
-                <input 
-                  type="text"
-                  required
-                  value={editingItem.type === 'reel' ? (editingItem.item.thumbnail || '') : (editingItem.item.image || '')}
-                  onChange={(e) => setEditingItem({
-                    ...editingItem,
-                    item: { 
-                      ...editingItem.item, 
-                      [editingItem.type === 'reel' ? 'thumbnail' : 'image']: e.target.value 
-                    }
-                  })}
-                  placeholder="https://images.unsplash.com/... or /anushka_avatar.jpg"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-white focus:outline-none focus:border-rose-500"
-                />
-
-                {/* Live Image Preview */}
-                <div className="mt-2.5 flex items-center gap-3 p-2 rounded-xl bg-black/40 border border-white/10">
-                  <div className="w-12 h-12 rounded-lg overflow-hidden bg-slate-900 border border-white/20 shrink-0">
-                    <img
-                      src={(editingItem.type === 'reel' ? editingItem.item.thumbnail : editingItem.item.image) || '/anushka_avatar.jpg'}
-                      alt="Preview"
-                      onError={(e) => { e.target.src = '/anushka_avatar.jpg'; }}
-                      className="w-full h-full object-cover"
-                    />
+              {/* General Image URL & File Upload for Post and Gallery */}
+              {(editingItem.type === 'post' || editingItem.type === 'gallery') && (
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-mono text-slate-300 uppercase">Image URL *</label>
+                    <label className="text-[10px] text-rose-300 hover:underline cursor-pointer flex items-center gap-1">
+                      <Upload className="w-3 h-3" />
+                      <span>Upload Photo</span>
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        className="hidden" 
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleFileRead(file, (dataUrl) => {
+                              setEditingItem({
+                                ...editingItem,
+                                item: { ...editingItem.item, image: dataUrl }
+                              });
+                            });
+                          }
+                        }}
+                      />
+                    </label>
                   </div>
-                  <div className="text-[11px] text-slate-400 font-mono leading-tight">
-                    <span className="text-white block font-semibold">Cover Photo Preview</span>
-                    <span>Photo will display identically on the main feed and inside modal.</span>
-                  </div>
-                </div>
-
-                {/* Quick Preset selector */}
-                <div className="flex flex-wrap gap-1.5 mt-2">
-                  <button
-                    type="button"
-                    onClick={() => setEditingItem({
+                  <input 
+                    type="text"
+                    required
+                    value={editingItem.item.image || ''}
+                    onChange={(e) => setEditingItem({
                       ...editingItem,
-                      item: { 
-                        ...editingItem.item, 
-                        [editingItem.type === 'reel' ? 'thumbnail' : 'image']: '/anushka_avatar.jpg' 
-                      }
+                      item: { ...editingItem.item, image: e.target.value }
                     })}
-                    className="px-2 py-0.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/40 text-[10px] text-rose-300 border border-rose-500/40 cursor-pointer font-bold"
-                  >
-                    ★ Anushka Portrait
-                  </button>
-                  {aestheticPresets.map((preset, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => setEditingItem({
-                        ...editingItem,
-                        item: { 
-                          ...editingItem.item, 
-                          [editingItem.type === 'reel' ? 'thumbnail' : 'image']: preset.url 
-                        }
-                      })}
-                      className="px-2 py-0.5 rounded-lg bg-white/[0.04] hover:bg-rose-500/20 text-[10px] text-slate-300 hover:text-rose-300 border border-white/[0.08] cursor-pointer"
-                    >
-                      {preset.title}
-                    </button>
-                  ))}
-                </div>
-              </div>
+                    placeholder="https://images.unsplash.com/... or /anushka_avatar.jpg"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-white focus:outline-none focus:border-rose-500"
+                  />
 
-              {/* Reel specific fields */}
-              {editingItem.type === 'reel' && (
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[11px] font-mono text-slate-300 uppercase mb-1">Audio / Sound</label>
-                    <input 
-                      type="text"
-                      value={editingItem.item.sound || ''}
-                      onChange={(e) => setEditingItem({
-                        ...editingItem,
-                        item: { ...editingItem.item, sound: e.target.value }
-                      })}
-                      placeholder="Original Audio"
-                      className="w-full px-3.5 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-white focus:outline-none focus:border-rose-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] font-mono text-slate-300 uppercase mb-1">Duration</label>
-                    <input 
-                      type="text"
-                      value={editingItem.item.duration || '0:30'}
-                      onChange={(e) => setEditingItem({
-                        ...editingItem,
-                        item: { ...editingItem.item, duration: e.target.value }
-                      })}
-                      placeholder="0:30"
-                      className="w-full px-3.5 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-white focus:outline-none focus:border-rose-500"
-                    />
+                  {/* Live Image Preview */}
+                  <div className="mt-2.5 flex items-center gap-3 p-2 rounded-xl bg-black/40 border border-white/10">
+                    <div className="w-12 h-12 rounded-lg overflow-hidden bg-slate-900 border border-white/20 shrink-0">
+                      <img
+                        src={editingItem.item.image || '/anushka_avatar.jpg'}
+                        alt="Preview"
+                        onError={(e) => { e.target.src = '/anushka_avatar.jpg'; }}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="text-[11px] text-slate-400 font-mono leading-tight">
+                      <span className="text-white block font-semibold">Photo Preview</span>
+                      <span>Displays on the feed grid and modal.</span>
+                    </div>
                   </div>
                 </div>
               )}
