@@ -1,13 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Camera, 
   Zap, 
   ShieldCheck, 
   HeartHandshake, 
   Sparkles, 
-  Sliders, 
-  Layers, 
-  Target 
+  ChevronDown, 
+  ChevronUp,
+  MapPin,
+  ExternalLink
 } from 'lucide-react';
 import { InstagramIcon } from './BrandIcons';
 import { creatorData as defaultCreatorData } from '../data/creatorData';
@@ -23,6 +24,8 @@ export const About = ({ data = defaultCreatorData }) => {
   const currentData = data || defaultCreatorData;
   const brand = currentData.brand;
   const pillars = currentData.aboutPillars || defaultCreatorData.aboutPillars;
+
+  const [isExpanded, setIsExpanded] = useState(false);
 
   return (
     <section id="about" className="py-24 relative overflow-hidden">
@@ -40,7 +43,7 @@ export const About = ({ data = defaultCreatorData }) => {
               {/* Main Primary Image */}
               <div className="relative rounded-3xl overflow-hidden border border-white/10 shadow-2xl group">
                 <img 
-                  src={brand.coverImage || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1000&q=80"} 
+                  src={brand.coverImage || "/anushka_avatar.jpg"} 
                   alt={`${brand.name} - Documenting life in my element`} 
                   className="w-full h-[480px] object-cover group-hover:scale-105 transition-transform duration-700"
                 />
@@ -66,7 +69,7 @@ export const About = ({ data = defaultCreatorData }) => {
               {/* Floating Second Image (Top-Right overlap) */}
               <div className="hidden sm:block absolute -top-8 -right-8 w-44 h-44 rounded-2xl overflow-hidden border-2 border-[#090A0F] shadow-2xl group">
                 <img 
-                  src={currentData.featuredPosts?.[0]?.image || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=400&q=80"} 
+                  src={brand.avatar || "/anushka_avatar.jpg"} 
                   alt="Fashion and lifestyle styling" 
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
@@ -103,14 +106,31 @@ export const About = ({ data = defaultCreatorData }) => {
               Documenting Life In <span className="text-instagram-gradient">My Element.</span>
             </h2>
 
-            {/* Narrative Paragraphs */}
-            <div className="space-y-4 text-slate-300 text-sm sm:text-base leading-relaxed mb-8">
+            {/* Narrative Paragraphs with Read More Toggle */}
+            <div className="space-y-4 text-slate-300 text-sm sm:text-base leading-relaxed mb-6">
               <p>
                 Hi, I'm <strong className="text-white">{brand.displayName || brand.name}</strong> (<span className="text-rose-400 font-mono">{brand.handle}</span>). {brand.aboutIntro}
               </p>
-              <p className="text-slate-400">
-                {brand.aboutDetailed}
-              </p>
+              
+              {isExpanded && (
+                <div className="space-y-3 animate-fadeIn text-slate-400 pt-1">
+                  <p>
+                    {brand.aboutDetailed}
+                  </p>
+                  <div className="flex items-center gap-2 text-xs font-mono text-slate-400 pt-2">
+                    <MapPin className="w-3.5 h-3.5 text-rose-400" />
+                    <span>{brand.location}</span>
+                  </div>
+                </div>
+              )}
+
+              <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-400 hover:text-rose-300 transition-colors cursor-pointer pt-1"
+              >
+                <span>{isExpanded ? 'Read Less' : 'Read Full Biography'}</span>
+                {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+              </button>
             </div>
 
             {/* Content Pillars Grid */}
@@ -166,3 +186,4 @@ export const About = ({ data = defaultCreatorData }) => {
     </section>
   );
 };
+

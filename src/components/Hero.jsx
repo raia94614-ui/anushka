@@ -102,22 +102,22 @@ export const Hero = ({ data = defaultCreatorData, onOpenMediaKit, onSelectStoryH
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </a>
 
-              {/* Secondary Explore Content CTA */}
+              {/* View My Work CTA */}
               <button
                 onClick={() => scrollToSection('#content')}
                 className="w-full sm:w-auto px-6 py-3.5 rounded-2xl font-medium text-slate-200 bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 hover:border-white/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer"
               >
                 <Play className="w-4 h-4 text-rose-400 fill-rose-400/20" />
-                <span>Explore Feed & Fits</span>
+                <span>View My Work</span>
               </button>
 
-              {/* Media Kit CTA */}
+              {/* Work With Me CTA */}
               <button
-                onClick={onOpenMediaKit}
+                onClick={() => scrollToSection('#contact')}
                 className="w-full sm:w-auto px-5 py-3.5 rounded-2xl font-medium text-slate-300 hover:text-white bg-transparent hover:bg-white/[0.04] border border-slate-700/50 hover:border-slate-500 transition-all flex items-center justify-center gap-2 text-sm cursor-pointer"
               >
-                <Download className="w-4 h-4 text-purple-400" />
-                <span>Collaborations</span>
+                <Sparkles className="w-4 h-4 text-purple-400" />
+                <span>Work With Me</span>
               </button>
             </div>
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Film, 
   Play, 
@@ -18,6 +18,15 @@ export const ReelsShowcase = ({ data = defaultCreatorData, onSelectReel }) => {
   const brand = currentData.brand;
   const reels = currentData.reels || [];
 
+  const [activeCategory, setActiveCategory] = useState('All');
+
+  // Gather unique categories from reels data
+  const dynamicCategories = ['All', ...new Set(reels.map(r => r.category))];
+
+  const filteredReels = activeCategory === 'All'
+    ? reels
+    : reels.filter(r => r.category === activeCategory);
+
   return (
     <section id="reels" className="py-24 relative overflow-hidden bg-gradient-to-b from-transparent via-[#11131E]/40 to-transparent">
       {/* Background glow accent */}
@@ -27,7 +36,7 @@ export const ReelsShowcase = ({ data = defaultCreatorData, onSelectReel }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-xs font-mono uppercase tracking-widest text-rose-400 mb-3">
               <Film className="w-3.5 h-3.5" />
@@ -37,7 +46,7 @@ export const ReelsShowcase = ({ data = defaultCreatorData, onSelectReel }) => {
               Reels & Aesthetic Edits
             </h2>
             <p className="mt-2 text-slate-400 text-sm sm:text-base max-w-xl">
-              Curated aesthetic transitions, lifestyle mini-vlogs, and travel frames from {brand.handle}.
+              Curated aesthetic transitions, lifestyle mini-vlogs, and travel frames from {brand.handle}. Click any reel for full-screen playback.
             </p>
           </div>
 
@@ -59,9 +68,26 @@ export const ReelsShowcase = ({ data = defaultCreatorData, onSelectReel }) => {
           </div>
         </div>
 
+        {/* Category Filters */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-8 no-scrollbar">
+          {dynamicCategories.map((category) => (
+            <button
+              key={category}
+              onClick={() => setActiveCategory(category)}
+              className={`px-4 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-200 cursor-pointer ${
+                activeCategory === category
+                  ? 'bg-gradient-to-r from-amber-500 via-rose-500 to-purple-600 text-white font-semibold shadow-md shadow-rose-500/20'
+                  : 'bg-white/[0.03] text-slate-300 hover:text-white hover:bg-white/[0.08] border border-white/[0.06]'
+              }`}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+
         {/* 9:16 Reels Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-5">
-          {reels.map((reel) => (
+          {filteredReels.map((reel) => (
             <div
               key={reel.id}
               onClick={() => onSelectReel(reel)}
@@ -141,3 +167,4 @@ export const ReelsShowcase = ({ data = defaultCreatorData, onSelectReel }) => {
     </section>
   );
 };
+

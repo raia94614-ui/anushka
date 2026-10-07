@@ -8,12 +8,20 @@ import {
   FileText,
   ExternalLink,
   Settings,
-  Sliders
+  Sun,
+  Moon
 } from 'lucide-react';
 import { InstagramIcon } from './BrandIcons';
 import { creatorData as defaultCreatorData } from '../data/creatorData';
 
-export const Navbar = ({ data = defaultCreatorData, onOpenMediaKit, onOpenAdmin, activeSection }) => {
+export const Navbar = ({ 
+  data = defaultCreatorData, 
+  onOpenMediaKit, 
+  onOpenAdmin, 
+  activeSection,
+  theme = 'dark',
+  onToggleTheme 
+}) => {
   const currentData = data || defaultCreatorData;
   const brand = currentData.brand;
   const stats = currentData.stats || [];
@@ -23,13 +31,13 @@ export const Navbar = ({ data = defaultCreatorData, onOpenMediaKit, onOpenAdmin,
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 40) {
+      if (window.scrollY > 30) {
         setIsScrolled(true);
       } else {
         setIsScrolled(false);
       }
     };
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -37,11 +45,11 @@ export const Navbar = ({ data = defaultCreatorData, onOpenMediaKit, onOpenAdmin,
     { name: 'Home', href: '#home' },
     { name: 'About', href: '#about' },
     { name: 'Stats', href: '#stats' },
-    { name: 'Content', href: '#content' },
+    { name: 'Work', href: '#content' },
     { name: 'Reels', href: '#reels' },
     { name: 'Gallery', href: '#gallery' },
+    { name: 'Services', href: '#services' },
     { name: 'Collaborate', href: '#collaborations' },
-    { name: 'Socials', href: '#socials' },
     { name: 'Contact', href: '#contact' },
   ];
 
@@ -60,8 +68,8 @@ export const Navbar = ({ data = defaultCreatorData, onOpenMediaKit, onOpenAdmin,
     <header 
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled 
-          ? 'glass-nav py-3 shadow-xl shadow-black/40' 
-          : 'bg-gradient-to-b from-[#090A0F]/90 via-[#090A0F]/50 to-transparent py-5'
+          ? 'glass-nav py-3 shadow-xl shadow-black/30' 
+          : 'bg-gradient-to-b from-[#090A0F]/90 via-[#090A0F]/40 to-transparent py-4'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -95,7 +103,7 @@ export const Navbar = ({ data = defaultCreatorData, onOpenMediaKit, onOpenAdmin,
           </a>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-1 bg-white/[0.03] border border-white/[0.08] px-3 py-1.5 rounded-full backdrop-blur-md">
+          <nav className="hidden xl:flex items-center gap-1 bg-white/[0.03] border border-white/[0.08] px-3 py-1.5 rounded-full backdrop-blur-md">
             {navLinks.map((link) => {
               const isActive = activeSection === link.href.substring(1);
               return (
@@ -118,9 +126,23 @@ export const Navbar = ({ data = defaultCreatorData, onOpenMediaKit, onOpenAdmin,
             })}
           </nav>
 
-          {/* Desktop Action Buttons */}
+          {/* Desktop Action Buttons & Theme Switcher */}
           <div className="hidden sm:flex items-center gap-2">
             
+            {/* Theme Toggle */}
+            <button
+              onClick={onToggleTheme}
+              className="p-2 rounded-full text-slate-300 hover:text-white bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 transition-colors cursor-pointer"
+              title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              aria-label="Toggle Theme"
+            >
+              {theme === 'dark' ? (
+                <Sun className="w-3.5 h-3.5 text-amber-400" />
+              ) : (
+                <Moon className="w-3.5 h-3.5 text-purple-400" />
+              )}
+            </button>
+
             {/* Admin Panel Trigger Pill */}
             <button
               onClick={onOpenAdmin}
@@ -155,7 +177,15 @@ export const Navbar = ({ data = defaultCreatorData, onOpenMediaKit, onOpenAdmin,
           </div>
 
           {/* Mobile Hamburger Button */}
-          <div className="flex items-center gap-2 lg:hidden">
+          <div className="flex items-center gap-2 xl:hidden">
+            <button
+              onClick={onToggleTheme}
+              className="p-2 rounded-lg bg-white/[0.05] border border-white/10 text-slate-300"
+              aria-label="Toggle Theme"
+            >
+              {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-purple-400" />}
+            </button>
+
             <button
               onClick={onOpenAdmin}
               className="p-2 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400"
@@ -163,16 +193,6 @@ export const Navbar = ({ data = defaultCreatorData, onOpenMediaKit, onOpenAdmin,
             >
               <Settings className="w-4 h-4" />
             </button>
-
-            <a
-              href={brand.instagramUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2 rounded-lg bg-white/[0.05] border border-white/10 text-rose-400 sm:hidden"
-              aria-label="Instagram Profile"
-            >
-              <InstagramIcon className="w-4 h-4" />
-            </a>
 
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -188,7 +208,7 @@ export const Navbar = ({ data = defaultCreatorData, onOpenMediaKit, onOpenAdmin,
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden fixed inset-x-0 top-[60px] bg-[#090A0F]/95 backdrop-blur-2xl border-b border-white/10 shadow-2xl py-6 px-6 animate-fadeIn transition-all">
+        <div className="xl:hidden fixed inset-x-0 top-[60px] bg-[#090A0F]/95 backdrop-blur-2xl border-b border-white/10 shadow-2xl py-6 px-6 animate-fadeIn transition-all">
           <div className="flex flex-col space-y-2">
             {navLinks.map((link) => {
               const isActive = activeSection === link.href.substring(1);
@@ -248,3 +268,4 @@ export const Navbar = ({ data = defaultCreatorData, onOpenMediaKit, onOpenAdmin,
     </header>
   );
 };
+

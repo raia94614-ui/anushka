@@ -6,6 +6,7 @@ import { About } from './components/About';
 import { FeaturedContent } from './components/FeaturedContent';
 import { ReelsShowcase } from './components/ReelsShowcase';
 import { Gallery } from './components/Gallery';
+import { ServicesSection } from './components/ServicesSection';
 import { Collaborations } from './components/Collaborations';
 import { SocialHub } from './components/SocialHub';
 import { Testimonials } from './components/Testimonials';
@@ -18,12 +19,49 @@ import { MediaKitModal } from './components/MediaKitModal';
 import { AdminPanel } from './components/AdminPanel';
 import { AdminLoginModal } from './components/AdminLoginModal';
 import { Toast } from './components/Toast';
+import { CustomCursor } from './components/CustomCursor';
+import { LoadingScreen } from './components/LoadingScreen';
+import { FloatingActions } from './components/FloatingActions';
+import { NotFoundModal } from './components/NotFoundModal';
 import { creatorData as initialCreatorData } from './data/creatorData';
 import { Settings, Lock, Sparkles } from 'lucide-react';
 
 const STORAGE_KEY = 'anushka_creator_data_v4';
+const THEME_KEY = 'anushka_theme_mode';
 
 export function App() {
+  // Theme state ('dark' | 'light')
+  const [theme, setTheme] = useState(() => {
+    try {
+      const savedTheme = localStorage.getItem(THEME_KEY);
+      if (savedTheme === 'light' || savedTheme === 'dark') return savedTheme;
+    } catch (e) {}
+    return 'dark';
+  });
+
+  // Apply theme class to <html>
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'light') {
+      root.classList.remove('dark');
+      root.classList.add('light');
+    } else {
+      root.classList.remove('light');
+      root.classList.add('dark');
+    }
+    try {
+      localStorage.setItem(THEME_KEY, theme);
+    } catch (e) {}
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+    showToast(`Switched to ${theme === 'dark' ? 'Light' : 'Dark'} mode`);
+  };
+
+  // Brief initial loading screen
+  const [isLoading, setIsLoading] = useState(true);
+
   // Central dynamic state initialized from localStorage or default creatorData
   const [data, setData] = useState(() => {
     try {
@@ -49,6 +87,7 @@ export function App() {
   const [activePost, setActivePost] = useState(null);
   const [activeReel, setActiveReel] = useState(null);
   const [mediaKitOpen, setMediaKitOpen] = useState(false);
+  const [notFoundOpen, setNotFoundOpen] = useState(false);
   const [galleryModalState, setGalleryModalState] = useState({
     isOpen: false,
     item: null,
@@ -116,7 +155,7 @@ export function App() {
 
   // Scrollspy observer for active section tracking
   useEffect(() => {
-    const sections = ['home', 'about', 'stats', 'content', 'reels', 'gallery', 'collaborations', 'socials', 'contact'];
+    const sections = ['home', 'about', 'stats', 'content', 'reels', 'gallery', 'services', 'collaborations', 'socials', 'contact'];
     
     const handleScroll = () => {
       const scrollPosition = window.scrollY + 200;
@@ -180,14 +219,24 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#090A0F] text-slate-100 font-sans selection:bg-rose-500 selection:text-white relative">
+    <div className={`min-h-screen font-sans relative ${theme === 'light' ? 'bg-[#FAF9F6] text-slate-900' : 'bg-[#090A0F] text-slate-100'}`}>
       
+      {/* 0. Custom Fluid Cursor on Desktop */}
+      <CustomCursor />
+
+      {/* 0.1 Initial Fast Loading Animation */}
+      {isLoading && (
+        <LoadingScreen onFinish={() => setIsLoading(false)} />
+      )}
+
       {/* 1. Sticky Glassmorphic Navbar */}
       <Navbar 
         data={data}
         onOpenMediaKit={() => setMediaKitOpen(true)}
         onOpenAdmin={handleOpenAdmin}
         activeSection={activeSection}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       />
 
       {/* Main Content Sections */}
@@ -227,26 +276,34 @@ export function App() {
           onSelectImage={handleSelectGalleryImage}
         />
 
-        {/* 8. Collaboration & Services ("Let's Create Something Together") */}
+        {/* 8. Creator Services & Offerings */}
+        <ServicesSection 
+          data={data}
+          onSelectService={(serviceTitle) => setSelectedPackage(serviceTitle)}
+        />
+
+        {/* 9. Collaboration Packages ("Let's Create Something Together") */}
         <Collaborations 
           data={data}
           onSelectPackage={(pkg) => setSelectedPackage(pkg)}
           onOpenMediaKit={() => setMediaKitOpen(true)}
         />
 
-        {/* 9. Social Media Multi-Platform Hub */}
+        {/* 10. Social Media Multi-Platform Hub */}
         <SocialHub 
           data={data}
           onShowToast={showToast}
         />
 
-        {/* 10. Brand & Client Testimonials */}
-        <Testimonials />
+        {/* 11. Brand & Client Testimonials (Renders cleanly when present) */}
+        <Testimonials 
+          data={data}
+        />
 
-        {/* 11. Frequently Asked Questions */}
+        {/* 12. Frequently Asked Questions */}
         <FAQSection />
 
-        {/* 12. Interactive Contact Section */}
+        {/* 13. Interactive Contact & Booking Section */}
         <Contact 
           data={data}
           selectedPackage={selectedPackage}
@@ -254,7 +311,7 @@ export function App() {
         />
       </main>
 
-      {/* 13. Footer */}
+      {/* 14. Footer */}
       <Footer 
         data={data}
         onOpenAdmin={handleOpenAdmin}
@@ -280,7 +337,14 @@ export function App() {
         <span className={`w-2 h-2 rounded-full ${isAdminAuthenticated ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
       </button>
 
-      {/* 14. Admin Authentication Login Modal (ID & Password) */}
+      {/* Floating Quick Instagram Actions on Bottom Right */}
+      <FloatingActions 
+        instagramUrl={data.brand?.instagramUrl}
+        dmUrl={data.brand?.dmUrl}
+        onOpenMediaKit={() => setMediaKitOpen(true)}
+      />
+
+      {/* 15. Admin Authentication Login Modal (ID & Password) */}
       {adminLoginOpen && (
         <AdminLoginModal
           data={data}
@@ -290,7 +354,7 @@ export function App() {
         />
       )}
 
-      {/* 15. Admin Panel Dashboard Modal (Only shown after entering credentials) */}
+      {/* 16. Admin Panel Dashboard Modal (Only shown after entering credentials) */}
       {adminOpen && (
         <AdminPanel
           data={data}
@@ -347,6 +411,13 @@ export function App() {
           onShowToast={showToast}
         />
       )}
+
+      {/* 404 Modal View */}
+      <NotFoundModal 
+        isOpen={notFoundOpen}
+        onClose={() => setNotFoundOpen(false)}
+        instagramUrl={data.brand?.instagramUrl}
+      />
 
       {/* Toast Notification Container */}
       <Toast 
