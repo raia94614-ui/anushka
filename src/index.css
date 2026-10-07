@@ -1,0 +1,186 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-display: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+    --font-syne: 'Syne', 'Outfit', sans-serif;
+  }
+
+  body {
+    background-color: #090A0F;
+    color: #F1F5F9;
+    font-family: var(--font-sans);
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+  }
+}
+
+/* Typography helper classes */
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-syne {
+  font-family: var(--font-syne);
+}
+
+/* Instagram Gradient Palettes */
+.bg-instagram-gradient {
+  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+}
+
+.bg-instagram-subtle {
+  background: linear-gradient(135deg, rgba(240, 148, 51, 0.15) 0%, rgba(220, 39, 67, 0.15) 50%, rgba(188, 24, 136, 0.15) 100%);
+}
+
+.text-instagram-gradient {
+  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.border-instagram-gradient {
+  border-image: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888) 1;
+}
+
+/* Glassmorphism Styles */
+.glass-nav {
+  background: rgba(9, 10, 15, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-card {
+  background: rgba(18, 20, 32, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.glass-card-hover {
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card-hover:hover {
+  background: rgba(24, 27, 43, 0.85);
+  border-color: rgba(225, 48, 108, 0.3);
+  transform: translateY(-4px);
+  box-shadow: 0 16px 36px -10px rgba(225, 48, 108, 0.15), 0 0 20px 0 rgba(255, 255, 255, 0.02);
+}
+
+.glass-card-active {
+  background: rgba(28, 32, 52, 0.9);
+  border: 1px solid rgba(225, 48, 108, 0.4);
+}
+
+/* Custom glow effects */
+.glow-rose {
+  box-shadow: 0 0 40px -10px rgba(225, 48, 108, 0.35);
+}
+
+.glow-purple {
+  box-shadow: 0 0 40px -10px rgba(131, 58, 180, 0.35);
+}
+
+.glow-ambient {
+  box-shadow: 0 20px 50px -15px rgba(0, 0, 0, 0.7), 0 0 30px -5px rgba(225, 48, 108, 0.15);
+}
+
+/* Animated Instagram Story Ring */
+.story-ring-animated {
+  background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888, #833ab4, #405de6, #f09433);
+  background-size: 300% 300%;
+  animation: story-gradient-flow 4s ease infinite;
+}
+
+@keyframes story-gradient-flow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Animation utilities */
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes scaleUp {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes bounceIn {
+  0% { opacity: 0; transform: translateY(20px) scale(0.95); }
+  60% { opacity: 1; transform: translateY(-4px) scale(1.02); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-scaleUp {
+  animation: scaleUp 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-bounceIn {
+  animation: bounceIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Audio wave animation */
+@keyframes audio-wave-1 {
+  0%, 100% { height: 6px; }
+  50% { height: 18px; }
+}
+
+@keyframes audio-wave-2 {
+  0%, 100% { height: 16px; }
+  50% { height: 8px; }
+}
+
+@keyframes audio-wave-3 {
+  0%, 100% { height: 10px; }
+  50% { height: 22px; }
+}
+
+@keyframes audio-wave-4 {
+  0%, 100% { height: 20px; }
+  50% { height: 12px; }
+}
+
+.wave-bar-1 { animation: audio-wave-1 1s ease-in-out infinite; }
+.wave-bar-2 { animation: audio-wave-2 0.8s ease-in-out infinite 0.2s; }
+.wave-bar-3 { animation: audio-wave-3 1.2s ease-in-out infinite 0.4s; }
+.wave-bar-4 { animation: audio-wave-4 0.9s ease-in-out infinite 0.1s; }
+
+/* No scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Custom Modern Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #090A0F;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #232738;
+  border-radius: 9999px;
+  border: 2px solid #090A0F;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #e1306c;
+}
