@@ -44,9 +44,6 @@ export const AdminPanel = ({ data, onSave, onReset, onLogout, onClose, onShowToa
   const [formData, setFormData] = useState(JSON.parse(JSON.stringify(data)));
   const [searchQuery, setSearchQuery] = useState('');
   const [showAdminPass, setShowAdminPass] = useState(false);
-  const [showApiToken, setShowApiToken] = useState(false);
-  const [apiLoading, setApiLoading] = useState(false);
-  const [apiStatus, setApiStatus] = useState(null);
   
   // Modal states for adding/editing items
   const [editingItem, setEditingItem] = useState(null); // { type: 'post'|'reel'|'gallery'|'highlight', item: {}, isNew: boolean }
@@ -93,87 +90,6 @@ export const AdminPanel = ({ data, onSave, onReset, onLogout, onClose, onShowToa
         [field]: value
       }
     }));
-  };
-
-  // Update Meta Instagram API Config
-  const handleApiConfigChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      apiConfig: {
-        ...(prev.apiConfig || { accessToken: '', userId: 'me', autoSync: false, highlightsPolicy: 'graceful_profile_link' }),
-        [field]: value
-      }
-    }));
-  };
-
-  // Sync Live Content directly from Meta Instagram API
-  const handleSyncInstagramApi = async () => {
-    const token = formData.apiConfig?.accessToken;
-    const userId = formData.apiConfig?.userId || 'me';
-
-    if (!token || !token.trim()) {
-      setApiStatus({
-        type: 'error',
-        message: 'Please provide a valid Meta / Instagram Graph API Access Token below.'
-      });
-      return;
-    }
-
-    setApiLoading(true);
-    setApiStatus(null);
-
-    try {
-      const res = await fetchInstagramMedia(token, userId);
-      if (res.success) {
-        let updatedPosts = formData.featuredPosts;
-        let updatedReels = formData.reels;
-        let postsCount = 0;
-        let reelsCount = 0;
-
-        if (res.posts && res.posts.length > 0) {
-          updatedPosts = res.posts;
-          postsCount = res.posts.length;
-        }
-        if (res.reels && res.reels.length > 0) {
-          updatedReels = res.reels;
-          reelsCount = res.reels.length;
-        }
-
-        setFormData(prev => ({
-          ...prev,
-          featuredPosts: updatedPosts,
-          reels: updatedReels,
-          stats: prev.stats.map(s => {
-            if (s.id === 'posts' && res.raw && res.raw.length > 0) {
-              return { ...s, value: `${res.raw.length}`, numericValue: res.raw.length };
-            }
-            return s;
-          })
-        }));
-
-        setApiStatus({
-          type: 'success',
-          message: `Successfully synchronized ${postsCount} posts and ${reelsCount} reels from Instagram API! Click "Save & Apply Live" in the top bar to persist changes.`,
-          stats: { postsCount, reelsCount, total: (res.raw || []).length }
-        });
-
-        if (onShowToast) {
-          onShowToast(`Synced ${res.raw?.length || 0} items from Instagram API! ✨`);
-        }
-      } else {
-        setApiStatus({
-          type: 'error',
-          message: res.error || 'Failed to fetch media from Instagram API. Verify your token and permissions.'
-        });
-      }
-    } catch (err) {
-      setApiStatus({
-        type: 'error',
-        message: err.message || 'An unexpected error occurred during API synchronization.'
-      });
-    } finally {
-      setApiLoading(false);
-    }
   };
 
   // Update stat item
@@ -459,8 +375,7 @@ export const AdminPanel = ({ data, onSave, onReset, onLogout, onClose, onShowToa
         <div className="px-6 py-2.5 bg-[#0c0e18] border-b border-white/10 flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0">
           {[
             { id: 'profile', label: 'Profile & Security', icon: User },
-            { id: 'api', label: 'Instagram API (Sync)', icon: RefreshCw },
-            { id: 'highlights', label: 'Story Highlights', count: formData.storyHighlights.length, icon: Sparkles },
+            { id: 'highlights', label: 'Story Highlights (Upload)', count: formData.storyHighlights.length, icon: Sparkles },
             { id: 'posts', label: 'Instagram Posts', count: formData.featuredPosts.length, icon: ImageIcon },
             { id: 'reels', label: 'Reels (9:16)', count: formData.reels.length, icon: Film },
             { id: 'gallery', label: 'Masonry Gallery', count: formData.galleryItems.length, icon: Camera },
@@ -761,280 +676,101 @@ export const AdminPanel = ({ data, onSave, onReset, onLogout, onClose, onShowToa
           )}
 
           {/* ============================================================ */}
-          {/* TAB: OFFICIAL META INSTAGRAM API (LIVE SYNC) */}
-          {/* ============================================================ */}
-          {activeTab === 'api' && (
-            <div className="max-w-4xl mx-auto space-y-6">
-              
-              {/* Header Card */}
-              <div className="p-6 rounded-3xl bg-gradient-to-br from-[#161827] via-[#121422] to-[#0d0f1a] border border-rose-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-rose-500/25 shrink-0">
-                    <InstagramIcon className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 className="font-display font-bold text-lg text-white flex items-center gap-2">
-                      <span>Meta Instagram Graph / Basic Display API</span>
-                      <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 text-[10px] font-mono font-semibold border border-rose-500/30">
-                        Official API
-                      </span>
-                    </h3>
-                    <p className="text-xs text-slate-300">
-                      Sync live posts, reels, and media counts directly from your Instagram account <strong className="text-rose-400">@anushkaunveiled</strong>.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="shrink-0">
-                  <button
-                    onClick={handleSyncInstagramApi}
-                    disabled={apiLoading}
-                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-rose-500 to-purple-600 hover:opacity-95 active:scale-95 text-white text-xs font-bold shadow-lg shadow-rose-500/25 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 transition-all"
-                  >
-                    <RefreshCw className={`w-4 h-4 ${apiLoading ? 'animate-spin' : ''}`} />
-                    <span>{apiLoading ? 'Syncing with Instagram...' : 'Sync Live Content Now'}</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Status Alert Banner */}
-              {apiStatus && (
-                <div className={`p-4 rounded-2xl border text-xs flex items-start gap-3 animate-fadeIn ${
-                  apiStatus.type === 'success' 
-                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' 
-                    : 'bg-rose-500/10 border-rose-500/30 text-rose-300'
-                }`}>
-                  {apiStatus.type === 'success' ? (
-                    <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-400 mt-0.5" />
-                  ) : (
-                    <AlertCircle className="w-5 h-5 shrink-0 text-rose-400 mt-0.5" />
-                  )}
-                  <div className="flex-grow">
-                    <p className="font-semibold">{apiStatus.message}</p>
-                    {apiStatus.stats && (
-                      <p className="text-[11px] text-emerald-400/80 mt-1 font-mono">
-                        📊 Live Feed: {apiStatus.stats.postsCount} Posts • {apiStatus.stats.reelsCount} Reels • Total {apiStatus.stats.total} Media Items
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* API Token & Credentials Form */}
-              <div className="p-6 rounded-3xl bg-[#11131E] border border-white/10 space-y-5">
-                <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                  <div className="flex items-center gap-2">
-                    <Settings className="w-4 h-4 text-rose-400" />
-                    <h4 className="font-display font-bold text-sm text-white">
-                      Instagram API Connection Credentials
-                    </h4>
-                  </div>
-                  <span className="text-[11px] text-slate-400 font-mono">
-                    Endpoint: <code className="text-slate-300">graph.instagram.com/me/media</code>
-                  </span>
-                </div>
-
-                <div className="space-y-4">
-                  {/* Access Token Input */}
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <label className="block text-xs font-mono text-slate-300 uppercase flex items-center gap-1.5">
-                        <KeyRound className="w-3.5 h-3.5 text-rose-400" />
-                        <span>Instagram User / Page Access Token *</span>
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => setShowApiToken(!showApiToken)}
-                        className="text-[11px] text-slate-400 hover:text-white flex items-center gap-1 cursor-pointer"
-                      >
-                        {showApiToken ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                        <span>{showApiToken ? 'Hide Token' : 'Reveal Token'}</span>
-                      </button>
-                    </div>
-                    <input 
-                      type={showApiToken ? "text" : "password"}
-                      value={formData.apiConfig?.accessToken || ''}
-                      onChange={(e) => handleApiConfigChange('accessToken', e.target.value)}
-                      placeholder="IGQWR... (Paste your Meta User Token here)"
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-white font-mono placeholder:text-slate-600 focus:outline-none focus:border-rose-500"
-                    />
-                    <p className="text-[11px] text-slate-400 mt-1">
-                      Long-lived or short-lived token generated via Meta Developer Portal or Instagram Graph API Explorer.
-                    </p>
-                  </div>
-
-                  {/* User ID / Account ID */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-mono text-slate-300 uppercase mb-1">
-                        Instagram User ID / Target ID
-                      </label>
-                      <input 
-                        type="text"
-                        value={formData.apiConfig?.userId || 'me'}
-                        onChange={(e) => handleApiConfigChange('userId', e.target.value)}
-                        placeholder="me or 178414..."
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-white font-mono focus:outline-none focus:border-rose-500"
-                      />
-                      <p className="text-[10px] text-slate-500 mt-1">
-                        Use <code className="text-slate-300">me</code> for standard User Token authentication.
-                      </p>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-mono text-slate-300 uppercase mb-1">
-                        Sync Strategy
-                      </label>
-                      <div className="px-3.5 py-2.5 rounded-xl bg-white/[0.02] border border-white/10 text-xs text-slate-300 flex items-center justify-between">
-                        <span>Dynamic Media Mapping (9:16 Reels & Posts)</span>
-                        <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                      </div>
-                      <p className="text-[10px] text-slate-500 mt-1">
-                        Automatically categorizes videos into Reels (9:16) and photos into Posts.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-3 border-t border-white/[0.08] flex items-center justify-between">
-                  <p className="text-[11px] text-slate-400 italic">
-                    💡 Click <strong>"Sync Live Content Now"</strong> to fetch your media from Meta, then click <strong>"Save & Apply Live"</strong>.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={handleSyncInstagramApi}
-                    disabled={apiLoading}
-                    className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
-                  >
-                    <RefreshCw className={`w-3.5 h-3.5 ${apiLoading ? 'animate-spin' : ''}`} />
-                    <span>Fetch Posts & Reels</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* HIGHLIGHTS POLICY & ARCHITECTURAL INTEGRITY NOTICE */}
-              <div className="p-6 rounded-3xl bg-gradient-to-br from-[#121422] to-[#0c0e18] border border-amber-500/30 space-y-3 shadow-xl">
-                <div className="flex items-center gap-2 text-amber-400">
-                  <ShieldAlert className="w-5 h-5 shrink-0" />
-                  <h4 className="font-display font-bold text-sm text-white">
-                    Instagram Highlights Architecture & Policy Notice
-                  </h4>
-                </div>
-                <p className="text-xs text-slate-300 leading-relaxed">
-                  <strong>Meta API Official Standard:</strong> Meta's Instagram Basic Display API & Graph API endpoints do <em>not</em> expose a public endpoint for Permanent Profile Story Highlights.
-                </p>
-                <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-200/90 leading-relaxed space-y-1.5">
-                  <p>
-                    ✅ <strong>Graceful Official Link:</strong> Story Highlights on this website are designed with 100% copy-to-copy Instagram UI, progress bars, and creator slides, while gracefully deep linking to <a href={formData.brand.instagramUrl} target="_blank" rel="noopener noreferrer" className="underline font-bold text-white hover:text-amber-300">@anushkaunveiled</a> on Instagram without inventing fake scraping.
-                  </p>
-                  <p>
-                    ✅ <strong>Full Creator Control:</strong> You can add, edit titles, replace covers, and adjust Story slides anytime in the <strong>Story Highlights</strong> tab of this Admin Panel.
-                  </p>
-                </div>
-              </div>
-
-              {/* Step-by-Step Meta Developer Guide Card */}
-              <div className="p-6 rounded-3xl bg-[#11131E] border border-white/10 space-y-4">
-                <h4 className="font-display font-bold text-sm text-white flex items-center gap-2">
-                  <Info className="w-4 h-4 text-sky-400" />
-                  <span>How to generate your Instagram API Access Token (Quick 4-Step Guide)</span>
-                </h4>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                  <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.06] space-y-1">
-                    <span className="text-[10px] font-mono font-bold text-rose-400 uppercase">Step 1</span>
-                    <h5 className="font-bold text-white">Open Meta for Developers</h5>
-                    <p className="text-[11px] text-slate-400">
-                      Visit <a href="https://developers.facebook.com" target="_blank" rel="noopener noreferrer" className="text-rose-400 underline inline-flex items-center gap-0.5">developers.facebook.com <ArrowUpRight className="w-3 h-3 inline" /></a> and create or select your App.
-                    </p>
-                  </div>
-
-                  <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.06] space-y-1">
-                    <span className="text-[10px] font-mono font-bold text-rose-400 uppercase">Step 2</span>
-                    <h5 className="font-bold text-white">Add Instagram Product</h5>
-                    <p className="text-[11px] text-slate-400">
-                      Add <strong>Instagram Basic Display</strong> or <strong>Instagram Graph API</strong> in your Meta App Dashboard.
-                    </p>
-                  </div>
-
-                  <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.06] space-y-1">
-                    <span className="text-[10px] font-mono font-bold text-rose-400 uppercase">Step 3</span>
-                    <h5 className="font-bold text-white">Authorize @anushkaunveiled</h5>
-                    <p className="text-[11px] text-slate-400">
-                      Add your Instagram account as a Tester in Roles, and accept the tester invitation in Instagram Settings &rarr; Apps & Websites.
-                    </p>
-                  </div>
-
-                  <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.06] space-y-1">
-                    <span className="text-[10px] font-mono font-bold text-rose-400 uppercase">Step 4</span>
-                    <h5 className="font-bold text-white">Generate Token & Sync</h5>
-                    <p className="text-[11px] text-slate-400">
-                      Click <strong>Generate Token</strong> with <code className="text-slate-300">user_profile, user_media</code>, paste it above, and click <strong>Sync Live Content</strong>.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          )}
-
-          {/* ============================================================ */}
-          {/* TAB 2: STORY HIGHLIGHTS */}
+          {/* TAB 2: STORY HIGHLIGHTS (DIRECT VIDEO & PHOTO UPLOAD) */}
           {/* ============================================================ */}
           {activeTab === 'highlights' && (
-            <div className="max-w-4xl mx-auto space-y-6">
-              <div className="flex items-center justify-between">
+            <div className="max-w-5xl mx-auto space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-3xl bg-gradient-to-r from-amber-500/10 via-rose-500/10 to-purple-600/10 border border-rose-500/25">
                 <div>
-                  <h3 className="font-display font-bold text-lg text-white">Story Highlights</h3>
-                  <p className="text-xs text-slate-400">Manage the circular Instagram highlight covers under the Hero section</p>
+                  <h3 className="font-display font-bold text-lg text-white flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-rose-400" />
+                    <span>Story Highlights Manager (Direct Video & Photo Upload)</span>
+                  </h3>
+                  <p className="text-xs text-slate-300 mt-1">
+                    Upload your raw videos (.mp4, .mov) or photos directly from your device. Add multiple video slides to any highlight.
+                  </p>
                 </div>
                 <button
                   onClick={() => setEditingItem({
                     type: 'highlight',
-                    item: { title: 'New Story', image: aestheticPresets[0].url, active: false },
+                    item: { 
+                      title: 'New Story', 
+                      image: aestheticPresets[0].url, 
+                      active: false,
+                      slides: [
+                        {
+                          id: `slide-${Date.now()}-1`,
+                          image: aestheticPresets[0].url,
+                          caption: 'In my element ✨',
+                          time: '4h'
+                        }
+                      ]
+                    },
                     isNew: true
                   })}
-                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-rose-500 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-md"
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-rose-500 to-purple-600 text-white text-xs font-bold flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-rose-500/25 hover:opacity-95 shrink-0"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>Add Highlight</span>
+                  <span>Upload New Highlight</span>
                 </button>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
-                {formData.storyHighlights.map((highlight) => (
-                  <div 
-                    key={highlight.id}
-                    className="p-3 rounded-2xl bg-[#11131E] border border-white/10 flex flex-col items-center text-center group hover:border-rose-500/40 transition-colors"
-                  >
-                    <div className="w-16 h-16 rounded-full p-[2px] story-ring-animated mb-2 overflow-hidden">
-                      <img 
-                        src={highlight.image} 
-                        alt={highlight.title}
-                        className="w-full h-full rounded-full object-cover"
-                      />
+              {/* Grid of Highlight Bubbles */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {formData.storyHighlights.map((highlight) => {
+                  const isCoverVideo = highlight.image && (highlight.image.startsWith('data:video') || /\.(mp4|webm|mov)/i.test(highlight.image));
+                  const slideCount = (highlight.slides || []).length || 1;
+
+                  return (
+                    <div 
+                      key={highlight.id}
+                      className="p-3.5 rounded-2xl bg-[#11131E] border border-white/10 flex flex-col items-center text-center group hover:border-rose-500/40 transition-colors"
+                    >
+                      <div className="w-20 h-20 rounded-full p-[2.5px] story-ring-animated mb-2.5 overflow-hidden bg-black relative">
+                        {isCoverVideo ? (
+                          <video src={highlight.image} className="w-full h-full rounded-full object-cover" />
+                        ) : (
+                          <img 
+                            src={highlight.image || '/anushka_avatar.jpg'} 
+                            alt={highlight.title}
+                            onError={(e) => { e.target.src = '/anushka_avatar.jpg'; }}
+                            className="w-full h-full rounded-full object-cover"
+                          />
+                        )}
+                        {isCoverVideo && (
+                          <span className="absolute bottom-1 right-1 p-0.5 rounded-full bg-black/80 text-[8px]">
+                            📹
+                          </span>
+                        )}
+                      </div>
+
+                      <span className="text-xs font-bold text-white truncate max-w-[120px] mb-1">
+                        {highlight.title}
+                      </span>
+                      <span className="text-[10px] font-mono text-rose-300 bg-rose-500/10 px-2 py-0.5 rounded-full mb-3 border border-rose-500/20">
+                        {slideCount} {slideCount === 1 ? 'Slide' : 'Slides'}
+                      </span>
+
+                      <div className="flex items-center gap-1.5 w-full justify-center pt-2 border-t border-white/[0.08]">
+                        <button
+                          onClick={() => setEditingItem({ type: 'highlight', item: { ...highlight }, isNew: false })}
+                          className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white text-[11px] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                          title="Edit Videos & Photos"
+                        >
+                          <Edit3 className="w-3 h-3" />
+                          <span>Edit</span>
+                        </button>
+                        <button
+                          onClick={() => handleDeleteHighlight(highlight.id)}
+                          className="p-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/40 text-rose-400 transition-colors cursor-pointer"
+                          title="Delete Highlight"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
-                    <span className="text-xs font-semibold text-white truncate max-w-[100px] mb-2">
-                      {highlight.title}
-                    </span>
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => setEditingItem({ type: 'highlight', item: { ...highlight }, isNew: false })}
-                        className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition-colors cursor-pointer"
-                        title="Edit Highlight"
-                      >
-                        <Edit3 className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteHighlight(highlight.id)}
-                        className="p-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/40 text-rose-400 transition-colors cursor-pointer"
-                        title="Delete Highlight"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
