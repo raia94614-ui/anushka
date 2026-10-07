@@ -16,15 +16,17 @@ import { Footer } from './components/Footer';
 import { LightboxModal } from './components/LightboxModal';
 import { ReelModal } from './components/ReelModal';
 import { MediaKitModal } from './components/MediaKitModal';
+import { StoryViewerModal } from './components/StoryViewerModal';
+import { ShareQRModal } from './components/ShareQRModal';
 import { AdminPanel } from './components/AdminPanel';
 import { AdminLoginModal } from './components/AdminLoginModal';
 import { Toast } from './components/Toast';
-import { CustomCursor } from './components/CustomCursor';
 import { LoadingScreen } from './components/LoadingScreen';
 import { FloatingActions } from './components/FloatingActions';
 import { NotFoundModal } from './components/NotFoundModal';
+import { ScrollProgressBar } from './components/ScrollProgressBar';
 import { creatorData as initialCreatorData } from './data/creatorData';
-import { Settings, Lock, Sparkles } from 'lucide-react';
+import { Settings, Lock, Sparkles, QrCode } from 'lucide-react';
 
 const STORAGE_KEY = 'anushka_creator_data_v4';
 const THEME_KEY = 'anushka_theme_mode';
@@ -83,10 +85,12 @@ export function App() {
   const [adminLoginOpen, setAdminLoginOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
 
-  // Other Interactive States
+  // Other Interactive Modal States
   const [activePost, setActivePost] = useState(null);
   const [activeReel, setActiveReel] = useState(null);
+  const [activeStoryHighlight, setActiveStoryHighlight] = useState(null);
   const [mediaKitOpen, setMediaKitOpen] = useState(false);
+  const [shareQROpen, setShareQROpen] = useState(false);
   const [notFoundOpen, setNotFoundOpen] = useState(false);
   const [galleryModalState, setGalleryModalState] = useState({
     isOpen: false,
@@ -176,26 +180,9 @@ export function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Handler for Story Highlight Click
+  // Handler for Story Highlight Click -> Opens Instagram Story Viewer Modal
   const handleSelectStoryHighlight = (highlight) => {
-    const matchedPost = data.featuredPosts?.find(p => 
-      p.category.toLowerCase().includes(highlight.title.toLowerCase())
-    ) || data.featuredPosts?.[0] || {
-      title: highlight.title,
-      image: highlight.image,
-      category: 'Highlight',
-      caption: `Story highlight from ${data.brand.handle}`,
-      location: 'In My Element',
-      date: 'Story',
-      tags: ['#anushkaunveiled', '#story']
-    };
-
-    setActivePost({
-      ...matchedPost,
-      title: `Story Highlight: ${highlight.title}`,
-      image: highlight.image
-    });
-    showToast(`Viewing story highlight: ${highlight.title}`);
+    setActiveStoryHighlight(highlight);
   };
 
   // Handler for Gallery Image Click
@@ -221,8 +208,8 @@ export function App() {
   return (
     <div className={`min-h-screen font-sans relative ${theme === 'light' ? 'bg-[#FAF9F6] text-slate-900' : 'bg-[#090A0F] text-slate-100'}`}>
       
-      {/* 0. Custom Fluid Cursor on Desktop */}
-      <CustomCursor />
+      {/* 0. Real-time Luxury Scroll Progress Bar */}
+      <ScrollProgressBar />
 
       {/* 0.1 Initial Fast Loading Animation */}
       {isLoading && (
@@ -282,7 +269,7 @@ export function App() {
           onSelectService={(serviceTitle) => setSelectedPackage(serviceTitle)}
         />
 
-        {/* 9. Collaboration Packages ("Let's Create Something Together") */}
+        {/* 9. Collaboration Packages & Live Campaign Estimator */}
         <Collaborations 
           data={data}
           onSelectPackage={(pkg) => setSelectedPackage(pkg)}
@@ -399,6 +386,16 @@ export function App() {
         />
       )}
 
+      {/* Instagram Stories Full Viewer Modal */}
+      {activeStoryHighlight && (
+        <StoryViewerModal
+          data={data}
+          activeHighlight={activeStoryHighlight}
+          onClose={() => setActiveStoryHighlight(null)}
+          onShowToast={showToast}
+        />
+      )}
+
       {/* Media Kit & Rate Guide Modal */}
       {mediaKitOpen && (
         <MediaKitModal
@@ -411,6 +408,14 @@ export function App() {
           onShowToast={showToast}
         />
       )}
+
+      {/* Share / QR Code Modal */}
+      <ShareQRModal 
+        data={data}
+        isOpen={shareQROpen}
+        onClose={() => setShareQROpen(false)}
+        onShowToast={showToast}
+      />
 
       {/* 404 Modal View */}
       <NotFoundModal 

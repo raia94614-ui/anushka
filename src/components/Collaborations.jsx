@@ -10,6 +10,7 @@ import {
   Award,
   Zap 
 } from 'lucide-react';
+import { CampaignEstimator } from './CampaignEstimator';
 import { creatorData as defaultCreatorData } from '../data/creatorData';
 
 export const Collaborations = ({ data = defaultCreatorData, onSelectPackage, onOpenMediaKit }) => {
@@ -38,7 +39,7 @@ export const Collaborations = ({ data = defaultCreatorData, onSelectPackage, onO
         <div className="text-center max-w-3xl mx-auto mb-16">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-xs font-mono uppercase tracking-widest text-rose-400 mb-3">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Brand Partnerships & Production Services</span>
+            <span>Brand Partnerships & Collaboration Packages</span>
           </div>
 
           <h2 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl text-white tracking-tight leading-tight mb-4">
@@ -138,34 +139,14 @@ export const Collaborations = ({ data = defaultCreatorData, onSelectPackage, onO
           ))}
         </div>
 
-        {/* Big Bottom Highlight Banner */}
-        <div className="relative rounded-3xl p-8 sm:p-12 overflow-hidden bg-gradient-to-r from-purple-950/40 via-rose-950/30 to-amber-950/20 border border-white/10 flex flex-col md:flex-row items-center justify-between gap-8">
-          
-          <div className="max-w-xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 text-xs font-mono mb-3">
-              <Award className="w-3.5 h-3.5" />
-              <span>Custom Brand & Event Retainers</span>
-            </div>
-            <h3 className="font-display font-bold text-2xl sm:text-3xl text-white mb-2">
-              Need a Custom Campaign or Lookbook Shoot?
-            </h3>
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-              We specialize in custom styling partnerships, curated product unboxings, long-term brand equity retainers, and aesthetic creator integrations.
-            </p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-3 shrink-0 w-full md:w-auto">
-            <button
-              onClick={() => scrollToContact('Custom Enterprise Inquiry')}
-              className="px-8 py-3.5 rounded-2xl font-bold text-sm text-white bg-gradient-to-r from-amber-500 via-rose-500 to-purple-600 shadow-xl shadow-rose-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <span>Let's Collaborate</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
+        {/* Live Interactive Deliverables Estimator Builder */}
+        <CampaignEstimator 
+          data={currentData} 
+          onSelectPackageQuote={(quote) => scrollToContact(quote)}
+        />
 
       </div>
     </section>
   );
 };
+
