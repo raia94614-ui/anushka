@@ -11,6 +11,14 @@ export const creatorData = {
     password: "foryou4321"
   },
 
+  // Official Meta Instagram API Settings (Optional Live Sync)
+  apiConfig: {
+    accessToken: "", // Enter official Meta Instagram Graph API token here or in Admin Panel
+    userId: "me",
+    autoSync: false,
+    highlightsPolicy: "graceful_profile_link" // Meta does not expose highlights publicly; links gracefully to official profile
+  },
+
   // Brand & Profile Information
   brand: {
     name: "ANUSHKA",
