@@ -28,7 +28,7 @@ import { ScrollProgressBar } from './components/ScrollProgressBar';
 import { creatorData as initialCreatorData } from './data/creatorData';
 import { Settings, Lock, Sparkles, QrCode } from 'lucide-react';
 
-const STORAGE_KEY = 'anushka_creator_data_v4';
+const STORAGE_KEY = 'anushka_creator_data_v5';
 const THEME_KEY = 'anushka_theme_mode';
 
 export function App() {

@@ -104,43 +104,163 @@ export const creatorData = {
     }
   ],
 
-  // Story Highlights
+  // Story Highlights with Full Multi-Slide Story Sets
   storyHighlights: [
     {
       id: "fits",
       title: "Fits & Style",
-      image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=400&q=80",
-      active: true
+      image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80",
+      active: true,
+      slides: [
+        {
+          id: "fits-1",
+          image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1080&q=80",
+          caption: "Chic neutral tones & minimal styling essentials 🕊️✨",
+          time: "4h"
+        },
+        {
+          id: "fits-2",
+          image: "/anushka_avatar.jpg",
+          caption: "In my element • Authentic everyday styling @anushkaunveiled",
+          time: "7h"
+        },
+        {
+          id: "fits-3",
+          image: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1080&q=80",
+          caption: "Golden hour linen silhouettes & clean wardrobe textures 🌿",
+          time: "12h"
+        },
+        {
+          id: "fits-4",
+          image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1080&q=80",
+          caption: "Effortless chic styling • Details & accessories 💫",
+          time: "18h"
+        }
+      ]
     },
     {
       id: "travel",
       title: "Travel",
-      image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=400&q=80",
-      active: false
+      image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80",
+      active: false,
+      slides: [
+        {
+          id: "travel-1",
+          image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1080&q=80",
+          caption: "Terracotta arches & golden hour reflections 🏛️✨",
+          time: "1d"
+        },
+        {
+          id: "travel-2",
+          image: "https://images.unsplash.com/photo-1570168007204-dfb528c6958f?auto=format&fit=crop&w=1080&q=80",
+          caption: "When the sky turns lilac and gold over the horizon 🌅🌊",
+          time: "2d"
+        },
+        {
+          id: "travel-3",
+          image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1080&q=80",
+          caption: "Scenic getaways & peaceful vistas • Wanderlust diaries 🗺️",
+          time: "3d"
+        }
+      ]
     },
     {
       id: "lifestyle",
       title: "Lifestyle",
-      image: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=400&q=80",
-      active: false
+      image: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=80",
+      active: false,
+      slides: [
+        {
+          id: "life-1",
+          image: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1080&q=80",
+          caption: "Documenting quiet, mindful moments in my element 🕊️",
+          time: "6h"
+        },
+        {
+          id: "life-2",
+          image: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1080&q=80",
+          caption: "Dewy morning skincare & gentle daily resets ✨🧴",
+          time: "14h"
+        },
+        {
+          id: "life-3",
+          image: "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1080&q=80",
+          caption: "Cozy creative corner & journal reflections 📖🪴",
+          time: "1d"
+        }
+      ]
     },
     {
       id: "cafes",
       title: "Café Diaries",
-      image: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=400&q=80",
-      active: false
+      image: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=800&q=80",
+      active: false,
+      slides: [
+        {
+          id: "cafe-1",
+          image: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=1080&q=80",
+          caption: "Specialty matcha pours & warm bakehouse mornings ☕🥐",
+          time: "8h"
+        },
+        {
+          id: "cafe-2",
+          image: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1080&q=80",
+          caption: "Aesthetic corner tables, iced lattes & slow reading 📚✨",
+          time: "1d"
+        }
+      ]
     },
     {
       id: "reels",
       title: "Reels",
       image: "/anushka_avatar.jpg",
-      active: false
+      active: false,
+      slides: [
+        {
+          id: "reels-1",
+          image: "/anushka_avatar.jpg",
+          caption: "A day in my element • Aesthetic mini vlog 🎬✨",
+          time: "2h"
+        },
+        {
+          id: "reels-2",
+          image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1080&q=80",
+          caption: "Outfit transition & styling secrets @anushkaunveiled 👗",
+          time: "10h"
+        },
+        {
+          id: "reels-3",
+          image: "https://images.unsplash.com/photo-1570168007204-dfb528c6958f?auto=format&fit=crop&w=1080&q=80",
+          caption: "Sunset moodboard & visual diary 🌅",
+          time: "1d"
+        }
+      ]
     },
     {
       id: "element",
       title: "In My Element",
-      image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
-      active: false
+      image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80",
+      active: false,
+      slides: [
+        {
+          id: "elem-1",
+          image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1080&q=80",
+          caption: "Documenting life in my element — curated visual stories 🤍",
+          time: "5h"
+        },
+        {
+          id: "elem-2",
+          image: "/anushka_avatar.jpg",
+          caption: "Authentic creator journey • Fashion, lifestyle & travel ✨",
+          time: "16h"
+        },
+        {
+          id: "elem-3",
+          image: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1080&q=80",
+          caption: "Soft lighting, natural tones, and timeless memories 📸",
+          time: "2d"
+        }
+      ]
     }
   ],
 
